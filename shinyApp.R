@@ -1,4 +1,4 @@
-#install.packages('shiny','ggplot2','dplyr','scales','png')
+install.packages('shiny','ggplot2','dplyr','scales','png')
 library(shiny)
 library(ggplot2)
 library(dplyr)
