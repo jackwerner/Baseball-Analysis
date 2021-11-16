@@ -14,7 +14,7 @@ l=data.frame()
 ui <- fluidPage(
   
   # App title ----
-  titlePanel("Strikezone Analysis"),
+  titlePanel("Arsenal Usage"),
   
   # Sidebar layout with input and output definitions ----
   sidebarLayout(
