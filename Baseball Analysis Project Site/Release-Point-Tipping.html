@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Jack Werner" />
+
+<meta name="date" content="2022-11-10" />
+
+<title>Does Release Point Impact wOBA?</title>
+
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/htmlwidgets-1.5.4/htmlwidgets.js"></script>
+<script src="site_libs/plotly-binding-4.10.0/plotly.js"></script>
+<script src="site_libs/typedarray-0.1/typedarray.min.js"></script>
+<link href="site_libs/crosstalk-1.0.0/css/crosstalk.css" rel="stylesheet" />
+<script src="site_libs/crosstalk-1.0.0/js/crosstalk.min.js"></script>
+<link href="site_libs/plotly-htmlwidgets-css-2.5.1/plotly-htmlwidgets.css" rel="stylesheet" />
+<script src="site_libs/plotly-main-2.5.1/plotly-latest.min.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Jack Werner Baseball Analysis</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="Release-Point-Tipping.html">Does Release Point Impact wOBA?</a>
+</li>
+<li>
+  <a href="Home-Run-Classification.html">Can We Predict Home Runs?</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Does Release Point Impact wOBA?</h1>
+<h4 class="author">Jack Werner</h4>
+<h4 class="date">11/10/2022</h4>
+
+</div>
+
+
+<div id="background" class="section level2">
+<h2>Background</h2>
+<p>The purpose of this script is to see which pitchers have the largest change in release point, and if this ‘tip’ coorelates to a higher wOBA</p>
+<p>The data includes all righty starting pitchers with at least 300 plate appearances in 2022. The 300 PA minimum was chosen with the intent of reducing noise in the dataset. ‘Tip distance’ is calculated as the distance between the average release point of each pitcher’s most-used pitch and their second most-used pitch.</p>
+<div id="htmlwidget-87454440a9f3c17b8258" style="width:672px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-87454440a9f3c17b8258">{"x":{"data":[{"x":[0.00803508369591826,0.0144173372104546,0.0207995907249909,0.0271818442395273,0.0335640977540636,0.0399463512685999,0.0463286047831363,0.0527108582976726,0.059093111812209,0.0654753653267453,0.0718576188412816,0.078239872355818,0.0846221258703543,0.0910043793848907,0.097386632899427,0.103768886413963,0.1101511399285,0.116533393443036,0.122915646957572,0.129297900472109,0.135680153986645,0.142062407501181,0.148444661015718,0.154826914530254,0.16120916804479,0.167591421559327,0.173973675073863,0.180355928588399,0.186738182102936,0.193120435617472,0.199502689132008,0.205884942646545,0.212267196161081,0.218649449675617,0.225031703190154,0.23141395670469,0.237796210219226,0.244178463733763,0.250560717248299,0.256942970762835,0.263325224277372,0.269707477791908,0.276089731306444,0.282471984820981,0.288854238335517,0.295236491850053,0.30161874536459,0.308000998879126,0.314383252393662,0.320765505908199,0.327147759422735,0.333530012937272,0.339912266451808,0.346294519966344,0.352676773480881,0.359059026995417,0.365441280509953,0.37182353402449,0.378205787539026,0.384588041053562,0.390970294568099,0.397352548082635,0.403734801597171,0.410117055111708,0.416499308626244,0.42288156214078,0.429263815655317,0.435646069169853,0.442028322684389,0.448410576198926,0.454792829713462,0.461175083227998,0.467557336742535,0.473939590257071,0.480321843771607,0.486704097286144,0.49308635080068,0.499468604315216,0.505850857829753,0.512233111344289],"y":[0.323435751012071,0.321497186092191,0.319672856462785,0.31795473374092,0.316334789543665,0.314804995488086,0.313357323191253,0.311983643604791,0.310681364594081,0.309468409424422,0.308357874496752,0.307271793335378,0.306259532253449,0.305414991185247,0.304832070065052,0.304660105051029,0.304988847660975,0.305599869018108,0.306261005740531,0.306740094446347,0.306900762385185,0.307082259477065,0.307271946830716,0.307386601200285,0.307342999339918,0.307057918003761,0.306576504826954,0.306025573504858,0.305431090876283,0.304818979415862,0.304172339266642,0.303446623461759,0.302667348135746,0.301861092779097,0.301054436882303,0.300273959935858,0.299546241430254,0.298897860855985,0.298355397703543,0.29794543146342,0.297694541626111,0.297629307682107,0.297776309121901,0.298162125435987,0.298775783881124,0.299462620634549,0.300202856361602,0.300996783118912,0.30184469296311,0.302746877950827,0.303703630138693,0.304715241583339,0.305782004341395,0.306904210469491,0.308082152024259,0.309316121062328,0.310606409640329,0.311953309814892,0.313357113642648,0.314818113180228,0.316336600484261,0.317912867611379,0.319547206618211,0.321239909561389,0.322991268497543,0.324801575483302,0.326671122575299,0.328600201830162,0.330589105304523,0.332638125055012,0.33474755313826,0.336917681610897,0.339148802529553,0.341441207950859,0.343795189931445,0.346211040527943,0.348689051796981,0.351229515795192,0.353832724579205,0.35649897020565],"text":"","type":"scatter","mode":"lines","name":"fitted values","line":{"width":3.77952755905512,"color":"rgba(51,102,255,1)","dash":"solid"},"hoveron":"points","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[0.00803508369591826,0.0144173372104546,0.0207995907249909,0.0271818442395273,0.0335640977540636,0.0399463512685999,0.0463286047831363,0.0527108582976726,0.059093111812209,0.0654753653267453,0.0718576188412816,0.078239872355818,0.0846221258703543,0.0910043793848907,0.097386632899427,0.103768886413963,0.1101511399285,0.116533393443036,0.122915646957572,0.129297900472109,0.135680153986645,0.142062407501181,0.148444661015718,0.154826914530254,0.16120916804479,0.167591421559327,0.173973675073863,0.180355928588399,0.186738182102936,0.193120435617472,0.199502689132008,0.205884942646545,0.212267196161081,0.218649449675617,0.225031703190154,0.23141395670469,0.237796210219226,0.244178463733763,0.250560717248299,0.256942970762835,0.263325224277372,0.269707477791908,0.276089731306444,0.282471984820981,0.288854238335517,0.295236491850053,0.30161874536459,0.308000998879126,0.314383252393662,0.320765505908199,0.327147759422735,0.333530012937272,0.339912266451808,0.346294519966344,0.352676773480881,0.359059026995417,0.365441280509953,0.37182353402449,0.378205787539026,0.384588041053562,0.390970294568099,0.397352548082635,0.403734801597171,0.410117055111708,0.416499308626244,0.42288156214078,0.429263815655317,0.435646069169853,0.442028322684389,0.448410576198926,0.454792829713462,0.461175083227998,0.467557336742535,0.473939590257071,0.480321843771607,0.486704097286144,0.49308635080068,0.499468604315216,0.505850857829753,0.512233111344289,0.512233111344289,0.512233111344289,0.505850857829753,0.499468604315216,0.49308635080068,0.486704097286144,0.480321843771607,0.473939590257071,0.467557336742535,0.461175083227998,0.454792829713462,0.448410576198926,0.442028322684389,0.435646069169853,0.429263815655317,0.42288156214078,0.416499308626244,0.410117055111708,0.403734801597171,0.397352548082635,0.390970294568099,0.384588041053562,0.378205787539026,0.37182353402449,0.365441280509953,0.359059026995417,0.352676773480881,0.346294519966344,0.339912266451808,0.333530012937272,0.327147759422735,0.320765505908199,0.314383252393662,0.308000998879126,0.30161874536459,0.295236491850053,0.288854238335517,0.282471984820981,0.276089731306444,0.269707477791908,0.263325224277372,0.256942970762835,0.250560717248299,0.244178463733763,0.237796210219226,0.23141395670469,0.225031703190154,0.218649449675617,0.212267196161081,0.205884942646545,0.199502689132008,0.193120435617472,0.186738182102936,0.180355928588399,0.173973675073863,0.167591421559327,0.16120916804479,0.154826914530254,0.148444661015718,0.142062407501181,0.135680153986645,0.129297900472109,0.122915646957572,0.116533393443036,0.1101511399285,0.103768886413963,0.097386632899427,0.0910043793848907,0.0846221258703543,0.078239872355818,0.0718576188412816,0.0654753653267453,0.059093111812209,0.0527108582976726,0.0463286047831363,0.0399463512685999,0.0335640977540636,0.0271818442395273,0.0207995907249909,0.0144173372104546,0.00803508369591826,0.00803508369591826],"y":[0.292192276147499,0.295163356003805,0.297683808457661,0.299690348571006,0.301109321754517,0.301869770177557,0.301939798240612,0.301378373736394,0.300364106483149,0.299092888430563,0.297727526718043,0.296413218783546,0.295097248069977,0.293801451574942,0.292799833730928,0.29256652501488,0.293115247876642,0.293827833831787,0.294332198431517,0.294618705967596,0.294924656662012,0.295493838117061,0.295902082312156,0.295862899477187,0.295439611753854,0.29492899856363,0.294534803941525,0.294039763830924,0.293309052274746,0.292500878969291,0.2917807058413,0.29104545540528,0.290288286556988,0.289504151724979,0.288691053406702,0.287853546127491,0.287005542383742,0.286171824809595,0.285387868871699,0.284698049647823,0.284152731573826,0.283804859691947,0.28370646997231,0.283905183975217,0.284386438642399,0.284928045452464,0.285509419683846,0.286137526144507,0.286817462166135,0.28755255773812,0.288344484103059,0.289193358032924,0.290097837078466,0.291055207054348,0.292061467306682,0.293111422242334,0.29419878927382,0.295316333577197,0.296456038514163,0.297609316876271,0.298767262195249,0.299920931747346,0.301061644857602,0.302181273631338,0.303272500373128,0.304329018067934,0.305345657348518,0.306318433721078,0.307244519795358,0.308122156188733,0.308950519919109,0.309729570114927,0.310459888564545,0.311142528399552,0.311778879444362,0.312370554472505,0.312919297307304,0.313426911506838,0.3138952071467,0.314325962719341,0.314325962719341,0.39867197769196,0.39377024201171,0.389032120083546,0.384458806286659,0.38005152658338,0.375811500418529,0.371739887502166,0.36783771649456,0.364105793106866,0.36054458635741,0.357154093921292,0.353933690813689,0.350881969939246,0.347996587802079,0.345274132898671,0.342710036621957,0.34029854549144,0.338032768378821,0.335904803475412,0.333905938773273,0.332026909484184,0.330258188771133,0.328590286052586,0.327014030006837,0.325520819882321,0.324102836741835,0.322753213884635,0.321466171604323,0.320237125133754,0.319062776174328,0.317941198163534,0.316871923760085,0.315856040093316,0.314896293039358,0.313997195816634,0.31316512911985,0.312419066896757,0.311846148271492,0.311453755672267,0.311236351678396,0.311192813279018,0.311322926535387,0.311623896902375,0.312086940476766,0.312694373744225,0.313417820357903,0.314218033833214,0.315046409714504,0.315847791518238,0.316563972691984,0.317137079862433,0.31755312947782,0.318011383178792,0.318618205712384,0.319186837443892,0.319246386925982,0.318910302923384,0.318641811349277,0.31867068083707,0.318876868108359,0.318861482925097,0.318189813049544,0.317371904204429,0.316862447445308,0.316753685087177,0.316864306399176,0.317028530795552,0.317421816436922,0.318130367887211,0.318988222275461,0.319843930418281,0.320998622705013,0.322588913473187,0.324774848141894,0.327740220798616,0.331560257332813,0.336219118910834,0.341661904467908,0.347831016180577,0.354679225876642,0.292192276147499],"text":"","type":"scatter","mode":"lines","line":{"width":3.77952755905512,"color":"transparent","dash":"solid"},"fill":"toself","fillcolor":"rgba(153,153,153,0.4)","hoveron":"points","hoverinfo":"x+y","showlegend":false,"xaxis":"x","yaxis":"y","frame":null},{"x":[0.137183035043633,0.0511332492668761,0.171193188297298,0.166486464326814,0.237206761306015,0.0206362399521116,0.175672038547363,0.0814844230326494,0.0467888376050082,0.056605309448832,0.245323623135619,0.0698202656600502,0.158440401133706,0.343898979983185,0.132290640545441,0.0669835830733192,0.294941777695226,0.167716577099745,0.176204932588569,0.110371582948713,0.18894646179272,0.093879607365705,0.177783696856837,0.0442644616921726,0.0694431794304508,0.0439821475148122,0.148355041187684,0.0992330401038018,0.389798068703167,0.0277178884813743,0.056775932543278,0.0814644763852872,0.0791728810651104,0.211274588724725,0.182179089467357,0.0563234438735731,0.0520397808131928,0.166329131464076,0.275504101223264,0.456624589336946,0.109707016128791,0.144080411365199,0.0982080367158806,0.331972853425439,0.0625585682804089,0.303603377691952,0.213278116577038,0.361709707117571,0.0970108789682335,0.193988534196336,0.497197655606481,0.100302133777448,0.0701601331454212,0.125768447553704,0.0580212650911799,0.0381721944008566,0.351628129351283,0.251609285043671,0.0268967712018326,0.0958033998772288,0.186118815810901,0.235476708049599,0.145125043416933,0.134553586667218,0.221705964449806,0.0794835274445278,0.229221596705432,0.109039511561157,0.116331834186855,0.172111403557643,0.0461908957467882,0.105433714371937,0.144153983379707,0.285197840706943,0.13230561885326,0.079343325480803,0.0459509908589445,0.0173220369740797,0.189961096467484,0.293132494179984,0.056829325519731,0.0829255390006981,0.233192030744808,0.107567832107657,0.168323140962655,0.115864105496374,0.12722179058117,0.143411308524939,0.0612990032447277,0.0301319888930466,0.0635951825790352,0.0313394541065233,0.093752982123379,0.0557638173960563,0.415871200778419,0.1359052577488,0.168271550274656,0.0578488061948566,0.163338243992031,0.263305605286623,0.104205293041435,0.190477686063911,0.0894065094333045,0.207734801781642,0.279272792445639,0.137904524520962,0.512233111344289,0.00803508369591826,0.294055698443379],"y":[0.379,0.26,0.333,0.312,0.326,0.291,0.35,0.269,0.326,0.334,0.306,0.339,0.329,0.267,0.327,0.273,0.263,0.313,0.311,0.296,0.283,0.316,0.309,0.259,0.315,0.344,0.325,0.376,0.362,0.345,0.326,0.25,0.295,0.304,0.331,0.299,0.344,0.238,0.292,0.35,0.283,0.318,0.321,0.355,0.341,0.319,0.328,0.344,0.254,0.339,0.322,0.331,0.321,0.289,0.302,0.316,0.286,0.313,0.368,0.305,0.303,0.341,0.304,0.303,0.261,0.341,0.267,0.279,0.309,0.32,0.292,0.264,0.315,0.255,0.325,0.249,0.33,0.325,0.305,0.27,0.294,0.309,0.254,0.386,0.273,0.298,0.237,0.264,0.291,0.311,0.308,0.36,0.352,0.343,0.312,0.222,0.303,0.301,0.306,0.293,0.316,0.283,0.301,0.275,0.332,0.37,0.363,0.282,0.288],"text":["Adon, Joan","Alcantara, Sandy","Anderson, Ian","Archer, Chris","Ashcraft, Graham","Bassitt, Chris","Berríos, José","Bieber, Shane","Blackburn, Paul","Bradish, Kyle","Brieske, Beau","Brubaker, JT","Bundy, Dylan","Burnes, Corbin","Carrasco, Carlos","Castillo, Luis","Cease, Dylan","Civale, Aaron","Clevinger, Mike","Cobb, Alex","Cole, Gerrit","Contreras, Roansy","Cueto, Johnny","Darvish, Yu","Davies, Zach","Dunning, Dane","Eovaldi, Nathan","Espino, Paolo","Fedde, Erick","Feltner, Ryan","Flexen, Chris","Gallen, Zac","Garcia, Luis","Gausman, Kevin","Gibson, Kyle","Gilbert, Logan","Giolito, Lucas","Gonsolin, Tony","Gray, Jon","Gray, Josiah","Gray, Sonny","Greene, Hunter","Greinke, Zack","Heasley, Jonathan","Hendricks, Kyle","Houser, Adrian","Hudson, Dakota","Hutchison, Drew","Javier, Cristian","Junis, Jakob","Kaprielian, James","Keller, Brad","Keller, Mitch","Kelly, Merrill","Kirby, George","Kluber, Corey","Kopech, Michael","Kremer, Dean","Kuhl, Chad","López, Pablo","Lorenzen, Michael","Lyles, Jordan","Lynn, Lance","Mahle, Tyler","Manoah, Alek","Márquez, Germán","McKenzie, Triston","Mikolas, Miles","Montas, Frankie","Morton, Charlie","Musgrove, Joe","Nola, Aaron","Odorizzi, Jake","Ohtani, Shohei","Otto, Glenn","Peralta, Freddy","Pivetta, Nick","Plesac, Zach","Quantrill, Cal","Rasmussen, Drew","Ryan, Joe","Sampson, Adrian","Scherzer, Max","Senzatela, Antonio","Severino, Luis","Singer, Brady","Strider, Spencer","Stripling, Ross","Stroman, Marcus","Syndergaard, Noah","Taillon, Jameson","Thompson, Keegan","Thompson, Zach","Ureña, José","Urquidy, José","Verlander, Justin","Voth, Austin","Wacha, Michael","Wainwright, Adam","Walker, Taijuan","Watkins, Spenser","Webb, Logan","Wells, Tyler","Wheeler, Zack","White, Mitch","Wilson, Bryse","Winckowski, Josh","Woodruff, Brandon","Wright, Kyle"],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(0,0,0,1)","opacity":1,"size":5.66929133858268,"symbol":"circle","line":{"width":1.88976377952756,"color":"rgba(0,0,0,1)"}},"hoveron":"points","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[0.00803508369591826,0.0144173372104546,0.0207995907249909,0.0271818442395273,0.0335640977540636,0.0399463512685999,0.0463286047831363,0.0527108582976726,0.059093111812209,0.0654753653267453,0.0718576188412816,0.078239872355818,0.0846221258703543,0.0910043793848907,0.097386632899427,0.103768886413963,0.1101511399285,0.116533393443036,0.122915646957572,0.129297900472109,0.135680153986645,0.142062407501181,0.148444661015718,0.154826914530254,0.16120916804479,0.167591421559327,0.173973675073863,0.180355928588399,0.186738182102936,0.193120435617472,0.199502689132008,0.205884942646545,0.212267196161081,0.218649449675617,0.225031703190154,0.23141395670469,0.237796210219226,0.244178463733763,0.250560717248299,0.256942970762835,0.263325224277372,0.269707477791908,0.276089731306444,0.282471984820981,0.288854238335517,0.295236491850053,0.30161874536459,0.308000998879126,0.314383252393662,0.320765505908199,0.327147759422735,0.333530012937272,0.339912266451808,0.346294519966344,0.352676773480881,0.359059026995417,0.365441280509953,0.37182353402449,0.378205787539026,0.384588041053562,0.390970294568099,0.397352548082635,0.403734801597171,0.410117055111708,0.416499308626244,0.42288156214078,0.429263815655317,0.435646069169853,0.442028322684389,0.448410576198926,0.454792829713462,0.461175083227998,0.467557336742535,0.473939590257071,0.480321843771607,0.486704097286144,0.49308635080068,0.499468604315216,0.505850857829753,0.512233111344289],"y":[0.306877964345613,0.306941366163218,0.307004767980822,0.307068169798426,0.30713157161603,0.307194973433634,0.307258375251238,0.307321777068843,0.307385178886447,0.307448580704051,0.307511982521655,0.307575384339259,0.307638786156863,0.307702187974468,0.307765589792072,0.307828991609676,0.30789239342728,0.307955795244884,0.308019197062488,0.308082598880092,0.308146000697697,0.308209402515301,0.308272804332905,0.308336206150509,0.308399607968113,0.308463009785717,0.308526411603322,0.308589813420926,0.30865321523853,0.308716617056134,0.308780018873738,0.308843420691342,0.308906822508946,0.308970224326551,0.309033626144155,0.309097027961759,0.309160429779363,0.309223831596967,0.309287233414571,0.309350635232175,0.30941403704978,0.309477438867384,0.309540840684988,0.309604242502592,0.309667644320196,0.3097310461378,0.309794447955405,0.309857849773009,0.309921251590613,0.309984653408217,0.310048055225821,0.310111457043425,0.310174858861029,0.310238260678634,0.310301662496238,0.310365064313842,0.310428466131446,0.31049186794905,0.310555269766654,0.310618671584259,0.310682073401863,0.310745475219467,0.310808877037071,0.310872278854675,0.310935680672279,0.310999082489883,0.311062484307488,0.311125886125092,0.311189287942696,0.3112526897603,0.311316091577904,0.311379493395508,0.311442895213113,0.311506297030717,0.311569698848321,0.311633100665925,0.311696502483529,0.311759904301133,0.311823306118737,0.311886707936342],"text":"","type":"scatter","mode":"lines","name":"fitted values","line":{"width":3.77952755905512,"color":"rgba(255,0,0,1)","dash":"solid"},"hoveron":"points","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":26.2283105022831,"r":7.30593607305936,"b":40.1826484018265,"l":48.9497716894977},"plot_bgcolor":"rgba(235,235,235,1)","paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[-0.0171748176865003,0.537443012726707],"tickmode":"array","ticktext":["0.0","0.1","0.2","0.3","0.4","0.5"],"tickvals":[0,0.1,0.2,0.3,0.4,0.5],"categoryorder":"array","categoryarray":["0.0","0.1","0.2","0.3","0.4","0.5"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(255,255,255,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"y","title":{"text":"tip_distance","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[0.213166401115402,0.407505576576558],"tickmode":"array","ticktext":["0.25","0.30","0.35","0.40"],"tickvals":[0.25,0.3,0.35,0.4],"categoryorder":"array","categoryarray":["0.25","0.30","0.35","0.40"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(255,255,255,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"x","title":{"text":"woba","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":false,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":1.88976377952756,"font":{"color":"rgba(0,0,0,1)","family":"","size":11.689497716895}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"source":"A","attrs":{"e48370aded20":{"x":{},"y":{},"type":"scatter"},"e4832aab09ab":{"x":{},"y":{},"text":{}},"e4834307cf6f":{"x":{},"y":{}}},"cur_data":"e48370aded20","visdat":{"e48370aded20":["function (y) ","x"],"e4832aab09ab":["function (y) ","x"],"e4834307cf6f":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<p>The plot above includes a Loess model in blue and a linear model in red. The linear model indicates a very subtle increase in wOBA, and the Loess model shows a sharp positive trend after the .3 ft mark.</p>
+</div>
+<div id="statistical-analysis" class="section level2">
+<h2>Statistical Analysis</h2>
+<p>A two-sample mean t-test is used to determine if the difference between two means is statistically significant. Our first sample is the wOBAs of all pitchers who have a tip distance of less than .35 feet on their two most-used pitches. The second sample is the wOBAs of all pitchers have a tip distance greater than .35 on their two most-used pitches. The two samples are assumed to be independent and normal, and the variances are shown to be relatively equal.</p>
+<pre class="r"><code>var(filter(tipping,tip_distance&gt;.35)$woba)</code></pre>
+<pre><code>## [1] 0.0008188095</code></pre>
+<pre class="r"><code>var(filter(tipping,tip_distance&lt;.35)$woba)</code></pre>
+<pre><code>## [1] 0.00110328</code></pre>
+<pre class="r"><code>t.test(filter(tipping,tip_distance&gt;.35)$woba,
+       filter(tipping,tip_distance&lt;.35)$woba,
+       var.equal = TRUE) </code></pre>
+<pre><code>## 
+##  Two Sample t-test
+## 
+## data:  filter(tipping, tip_distance &gt; 0.35)$woba and filter(tipping, tip_distance &lt; 0.35)$woba
+## t = 2.1417, df = 107, p-value = 0.03448
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  0.002053178 0.053134497
+## sample estimates:
+## mean of x mean of y 
+## 0.3341429 0.3065490</code></pre>
+<p>The p-value of the t-test is below 0.05, which means we reject the null hypothesis that the two sample means are equal. We conclude that there is a statistically significant difference in the mean wOBA for pitchers with release point tip distances above or below .35 feet. We are 95% confidident that the true difference in means lies between 0.002053178 and 0.053134497.</p>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p>It appears that batters can notice changes in release point when the change is greater than .35 feet. We have found strong reason to believe that wOBA increases when tip distances are above .35 feet. It should be noted that the sample size is small for pitchers with a tip distance &gt; .35 (only 7 pitchers). However, small sample size does NOT invalidate the results of the t-test. It should also be noted that the upper bound for wOBA increase is only 0.053 wOBA, which is not very much.</p>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

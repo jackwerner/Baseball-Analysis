@@ -1,0 +1,9 @@
+name: "Jack Werner Baseball Analysis"
+navbar:
+  title: "Jack Werner Baseball Analysis"
+  left:
+    - text: "Does Release Point Impact wOBA?"
+      href: Release-Point-Tipping.html
+    - text: "Can We Predict Home Runs?"
+      href: Home-Run-Classification.html
+output_dir: "."

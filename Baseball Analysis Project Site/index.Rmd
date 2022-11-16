@@ -1,0 +1,26 @@
+---
+title: "Jack Werner Baseball Analysis"
+output: html_document
+---
+
+<style type="text/css">
+.title {
+  display: none;
+}
+
+</style>
+
+<div class="row" style="padding-top: 30px;">
+<div class="col-sm-8">
+# **Baseball Research and Analyses by Jack Werner**
+
+Use the navigation bar above to explore any of my baseball analysis projects. If you have any questions, please contact me at jack.richard.werner@gmail.com.
+
+### *Glossary of Work* {style="padding-top: 0px;"}
+<a href="Release-Point-Tipping.html"><i>Does Release Point Impact wOBA?</i></a> - using a t-test to identify the effect of arm-slot tipping
+
+<a href="Home-Run-Classification.html"><i>Can We Predict Home Runs?</i></a> - using predictive modeling to understand nuts and bolts of a home run hit
+
+</div>
+<div class="col-sm-6">
+

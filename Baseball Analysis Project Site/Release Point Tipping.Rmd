@@ -1,0 +1,45 @@
+---
+title: "Does Release Point Impact wOBA?"
+author: "Jack Werner"
+date: "11/10/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(data.table)
+library(dplyr)
+library(plotly)
+```
+
+## Background
+
+The purpose of this script is to see which pitchers have the largest change in release point, and if this 'tip' coorelates to a higher wOBA 
+
+The data includes all righty starting pitchers with at least 300 plate appearances in 2022. The 300 PA minimum was chosen with the intent of reducing noise in the dataset. 'Tip distance' is calculated as the distance between the average release point of each pitcher's most-used pitch and their second most-used pitch. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+tipping = read.csv("tipping2022_300pa_righty.csv")
+ggplotly(ggplot(data = tipping, aes(x=tip_distance,y=woba))+
+           geom_smooth()+geom_point(aes(text=player_name)) +
+           geom_smooth(method="lm",se = FALSE,color="red"),tooltip="text")
+```
+
+The plot above includes a Loess model in blue and a linear model in red. The linear model indicates a very subtle increase in wOBA, and the Loess model shows a sharp positive trend after the .3 ft mark. 
+
+## Statistical Analysis
+
+A two-sample mean t-test is used to determine if the difference between two means is statistically significant. Our first sample is the wOBAs of all pitchers who have a tip distance of less than .35 feet on their two most-used pitches. The second sample is the wOBAs of all pitchers have a tip distance greater than .35 on their two most-used pitches. The two samples are assumed to be independent and normal, and the variances are shown to be relatively equal. 
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+var(filter(tipping,tip_distance>.35)$woba)
+var(filter(tipping,tip_distance<.35)$woba)
+t.test(filter(tipping,tip_distance>.35)$woba,
+       filter(tipping,tip_distance<.35)$woba,
+       var.equal = TRUE) 
+```
+
+The p-value of the t-test is below 0.05, which means we reject the null hypothesis that the two sample means are equal. We conclude that there is a statistically significant difference in the mean wOBA for pitchers with release point tip distances above or below .35 feet. We are 95% confidident that the true difference in means lies between 0.002053178 and 0.053134497.
+
+## Conclusion
+It appears that batters can notice changes in release point when the change is greater than .35 feet. We have found strong reason to believe that wOBA increases when tip distances are above .35 feet. It should be noted that the sample size is small for pitchers with a tip distance > .35 (only 7 pitchers). However, small sample size does NOT invalidate the results of the t-test. It should also be noted that the upper bound for wOBA increase is only 0.053 wOBA, which is not very much. 

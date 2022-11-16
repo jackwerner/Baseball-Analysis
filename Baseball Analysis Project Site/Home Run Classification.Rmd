@@ -1,0 +1,101 @@
+---
+title: "Can We Predict Home Runs?"
+author: "Jack Werner"
+date: "11/14/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Background
+
+The purpose of this document is to create a model that can accurately classify home runs based on certain characteristics of a batted ball. The data used for this analysis is all of Aaron Judge's balls-in-play in the 2022 regular season. 
+
+## Variable selection: 
+In the time between contact and decision, what information exists? 
+
+To start with, launch speed & angle should certainly be included. Ballparks are also included as factors because the different shapes and sizes of the ballparks should have a strong impact on whether a hit is a home run. One could argue that we might want to include pitch type and pitch zone, but these ultimately factor into launch metrics so they are excluded to prevent collinearity. One missing piece of information is spray angle. Statcast has data but it is tracked by a person's best judgement and is subject to error. This is excluded as it harmed the model's results. The lack of reliable data contributes to an increased number of Type II errors as the model underestimates corner homers.
+
+The graph below shows all of Aaron Judge's 2022 balls-in-play, where green points are home runs. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(dplyr)
+library(ggplot2)
+library(caret)
+library(glmnet)
+
+#Using all aaron judge 2022 balls-in-play
+AJ_BIP = read.csv("judge2022BIP.csv")
+
+AJ_BIP = AJ_BIP %>% filter(description == "hit_into_play")
+
+AJ_BIP = AJ_BIP %>% 
+  mutate(homer = case_when(events=="home_run"~1,events!="home_run"~0)) %>% 
+  select(launch_speed, launch_angle, homer,home_team) #play with home_team, fielder, zone,etc
+
+ggplot(data=AJ_BIP,aes(x=launch_speed,y=launch_angle)) + 
+  geom_point(data=filter(AJ_BIP,homer==1),aes(x=launch_speed,y=launch_angle),color="darkgreen")+
+  geom_point(data=filter(AJ_BIP,homer==0),aes(x=launch_speed,y=launch_angle),shape=21,color="darkgrey")+
+  theme_minimal()
+AJ_BIP = AJ_BIP[complete.cases(AJ_BIP),]
+
+AJ_BIP_clean = AJ_BIP[!AJ_BIP$launch_angle %in% boxplot.stats(AJ_BIP$launch_angle)$out,]
+AJ_BIP_clean = AJ_BIP_clean[!AJ_BIP_clean$launch_speed %in% boxplot.stats(AJ_BIP_clean$launch_speed)$out,]
+
+AJ_BIP_clean = predict(preProcess(AJ_BIP_clean, method = c("range"),rangeBounds = c(0, 1)),AJ_BIP_clean)
+```
+
+## Model Creation
+This problem requires a classification model. This model was created using a Generalized Linear Model using the glmnet library. We are also using cross-validation with n=5 to help prevent overfitting and selection bias. 
+
+
+```{r AJ_BIP_clean, echo=TRUE, message=FALSE, warning=FALSE}
+glmnet_hr <- train(
+  factor(homer) ~ .,
+  data = AJ_BIP_clean,
+  method = "glmnet",
+  trControl = trainControl(method = "cv",  number = 5)  #the model uses cross validation n=5 to ensure it isn't overfitting
+)
+glmnet_hr
+```
+
+As the outpot shows, the model is able to classify hits with ~90% accuracy. You can see the variable importance graph below:
+
+```{r glmnet_hr, AJ_BIP_clean, echo=FALSE, message=FALSE, warning=FALSE}
+library(caret)
+plot(varImp(glmnet_hr,scale=FALSE)) 
+```
+
+As suspected, the launch metrics have a huge impact on the result of Judge's hits. Also shown is which ballparks had the most predictive power on his hits. 
+
+Below is the Confusion Matrix for the model. Note that 0 is not a home run, and 1 is a home run. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+confusionMatrix(predict(glmnet_hr, AJ_BIP_clean),factor(AJ_BIP_clean$homer),positive="1")
+```
+
+Once again, the accuracy is shown at ~90%. The sensitivity (correctly predicting true homeruns) is only ~60% but the specificity (correctly prediting negative) is ~96%. The Pos Pred Value is ~77%, meaning roughly 77% of hits that the model classifies as a home run is actually a home run. 
+
+The Balanced Accuracy is the average of the Sensitivity and the Specificity, which is about 78%. 
+
+Overall, these results show that the model does a fairly good job at classifying hits. It does especially well when the hit was not a home run, and it struggles a bit more to correctly identify home runs. This is likely a result of foul-line home runs (discussed above) and ballpark features like the short-porch at Yankee stadium. 
+
+The model results are plotted below. Solid dots are home runs, empty dots are not home runs. Green dots are correct preditions, red dots are incorrect predictions. 
+
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
+AJ_BIP_clean$prediction = as.numeric(as.character(predict(glmnet_hr, AJ_BIP_clean)))
+#sum(AJ_BIP_clean$prediction)
+#ggplot(data=AJ_BIP_clean,aes(x=launch_speed,y=launch_angle)) + geom_point(color=AJ_BIP_clean$zone)
+ggplot(data=AJ_BIP_clean,aes(x=launch_speed,y=launch_angle)) + 
+    geom_point(data=filter(AJ_BIP_clean,homer==1,prediction==1),aes(x=launch_speed,y=launch_angle),color="darkgreen")+
+    geom_point(data=filter(AJ_BIP_clean,homer==0,prediction==0),aes(x=launch_speed,y=launch_angle),shape=21,color="darkgreen")+
+    geom_point(data=filter(AJ_BIP_clean,homer==0,prediction==1),aes(x=launch_speed,y=launch_angle),shape=21,color="red")+
+    geom_point(data=filter(AJ_BIP_clean,homer==1,prediction==0),aes(x=launch_speed,y=launch_angle),color="red")+
+  theme_minimal()
+
+```
+
+
+
